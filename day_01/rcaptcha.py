@@ -3,7 +3,7 @@
 """First and second problems in the Advent of Code, day 1.
 
 Turn a number into a list of digits, check if each number matches the one N
-steps ahead. Take the sum the ones that do.
+steps ahead. Take the sum of the ones that do.
 
 ```bash
 Usage: rcaptcha.py [OPTIONS] COMMAND [ARGS]...
@@ -19,7 +19,7 @@ To get the answers for the two problems:
 
 ```bash
 $ ./rcaptcha.py next $(cat input)
-$ ./rcaptcha.py opposite $(cat input
+$ ./rcaptcha.py opposite $(cat input)
 ```
 """
 import itertools
@@ -53,7 +53,10 @@ def split_into_digits(input_value: int) -> t.List[int]:
 
 
 def checksum(steps_ahead: int, input_value: int) -> int:
-    """Sum up the numbers which match values `steps_ahead` ahead in the list of input digits.
+    """Santa-checksum.
+
+    Sum the numbers which match values `steps_ahead` ahead in the list of input
+    digits.
 
     raises:
       ValueError: if input is negative.
@@ -67,8 +70,8 @@ def checksum(steps_ahead: int, input_value: int) -> int:
 
     # Example for matches one ahead:
     # steps_ahead: 1, digits = [1, 2, 3, 1] -> wrapped_digits: [2, 3, 1, 1] ->
-    # digit_pairs: [(1, 2), (2, 3), (3, 1), (1, 1)] -> matching_digit_pairs: [(1, 1)] ->
-    # return value: 1
+    # digit_pairs: [(1, 2), (2, 3), (3, 1), (1, 1)] ->
+    # matching_digit_pairs: [(1, 1)] -> return value: 1
     wrapped_digits = _wrap_list(steps_ahead, digits)
     digit_pairs = zip(itertools.cycle(digits), wrapped_digits)
     matching_digit_pairs = filter(_pair_is_equal, digit_pairs)
@@ -103,15 +106,23 @@ def rcaptcha() -> None:
 @rcaptcha.command()
 @click.argument('number', type=int)
 def next(number) -> None:
-    """With your input as a circular list of numbers, sum matching values one step ahead."""
-    click.echo(checksum_next(number))
+    """Santa-checksum - one step ahead.
+
+    With your input as a circular list of numbers, sum matching values one step
+    ahead.
+    """
+    click.echo(str(checksum_next(number)))
 
 
 @rcaptcha.command()
 @click.argument('number', type=int)
 def opposite(number) -> None:
-    """With your input as a circular list of numbers, sum matching values half way ahead."""
-    click.echo(checksum_opposite(number))
+    """Santa-checkum - halfway round the list.
+
+    With your input as a circular list of numbers, sum matching values half way
+    ahead.
+    """
+    click.echo(str(checksum_opposite(number)))
 
 
 if __name__ == '__main__':
