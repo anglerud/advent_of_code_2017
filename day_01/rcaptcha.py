@@ -22,7 +22,6 @@ $ ./rcaptcha.py next $(cat input)
 $ ./rcaptcha.py opposite $(cat input)
 ```
 """
-import itertools
 import operator
 import typing as t
 
@@ -73,7 +72,7 @@ def checksum(steps_ahead: int, input_value: int) -> int:
     # digit_pairs: [(1, 2), (2, 3), (3, 1), (1, 1)] ->
     # matching_digit_pairs: [(1, 1)] -> return value: 1
     wrapped_digits = _wrap_list(steps_ahead, digits)
-    digit_pairs = zip(itertools.cycle(digits), wrapped_digits)
+    digit_pairs = zip(digits, wrapped_digits)
     matching_digit_pairs = filter(_pair_is_equal, digit_pairs)
 
     return sum(map(head, matching_digit_pairs))
