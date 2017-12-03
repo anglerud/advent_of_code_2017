@@ -20,6 +20,11 @@ def index_to_coord(index: int) -> Coordinate:
     return Coordinate(0, 0)
 
 
+def distance(coord: Coordinate) -> int:
+    """ """
+    return 0
+
+
 @click.group()
 def spiral_walk() -> None:
     pass
@@ -28,7 +33,7 @@ def spiral_walk() -> None:
 @spiral_walk.command()
 @click.argument('position', type=int)
 def pos(position: int):
-    click.echo(str(position))
+    click.echo(str(distance(position)))
 
 
 def main() -> None:
