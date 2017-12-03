@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""
-"""
+"""Day 2 of the advent of code challenges."""
 import itertools
 import typing as t
 
@@ -14,17 +13,17 @@ TupleList = t.Iterator[t.Tuple[int, ...]]
 
 
 class TooFewValuesInLine(ValueError):
-    """ """
+    """Spreadsheet rows must have more than two lines to be valid."""
     pass
 
 
 class NoDivisorsFound(ValueError):
-    """ """
+    """No numbers in this row were evenly divisible."""
     pass
 
 
 def line_to_numbers(line: str) -> t.List[int]:
-    """
+    """Split a spreadsneet line into a list of numbers.
 
     raises:
       ValueError
@@ -33,7 +32,7 @@ def line_to_numbers(line: str) -> t.List[int]:
 
 
 def spreadsheet_to_numbers(lines: t.Iterable[str]) -> t.List[t.List[int]]:
-    """
+    """Text of spreadsheet to rows of numbers.
 
     raises:
       ValueError
@@ -43,19 +42,17 @@ def spreadsheet_to_numbers(lines: t.Iterable[str]) -> t.List[t.List[int]]:
 
 # ==== Part 1 ====
 def diff_row_checksum(row: t.List[int]) -> int:
-    """
-    """
+    """Calculate the first checksum of a spreadsheet row."""
     return max(row) - min(row)
 
 
 def diff_checksum_of_rows(rows: t.List[t.List[int]]) -> int:
-    """
-    """
+    """Checksum a spreadsheet's numeric rows."""
     return sum(map(diff_row_checksum, rows))
 
 
 def difference_checksum(spreadsheet: t.IO[str]) -> int:
-    """
+    """Checksum a spreadsheet file.
 
     raises:
       ValueError
@@ -66,7 +63,7 @@ def difference_checksum(spreadsheet: t.IO[str]) -> int:
 
 # ==== Part 2 ====
 def divisors(row: t.List[int]) -> t.Tuple[int, ...]:
-    """
+    """Find the first evenly divisible pair in a spreadsheet row.
 
     raises:
       NoDivisorsFound
@@ -89,18 +86,20 @@ def divisors(row: t.List[int]) -> t.Tuple[int, ...]:
 
 
 def divisor_checksum_of_rows(rows: t.List[t.List[int]]) -> int:
-    """
+    """2nd checksum version of a row.
+
+    Sum of evenly divisible pair in each row.
 
     raises:
       NoDivisorsFound
       TooFewValuesInLine
     """
     row_nums = map(divisors, rows)
-    return int(sum(left / right for left, right in row_nums))
+    return sum(left // right for left, right in row_nums)
 
 
 def divisor_checksum(spreadsheet: t.IO[str]) -> int:
-    """
+    """Checksum a spreadsheet file with the even divisor pair method.
 
     raises:
       NoDivisorsFound
@@ -112,21 +111,21 @@ def divisor_checksum(spreadsheet: t.IO[str]) -> int:
 
 @click.group()
 def checksum() -> None:
-    """ """
+    """Perform Santa's checksumming."""
     pass
 
 
 @checksum.command()
 @click.argument('spreadsheet', type=click.File())
 def diff(spreadsheet: t.IO[str]) -> None:
-    """ """
+    """Each row's minimum value is subtracted from its maximum."""
     click.echo(str(difference_checksum(spreadsheet)))
 
 
 @checksum.command()
 @click.argument('spreadsheet', type=click.File())
 def div(spreadsheet: t.IO[str]) -> None:
-    """ """
+    """Each row has one evenly divisible pair - each divided pair is summed."""
     click.echo(str(divisor_checksum(spreadsheet)))
 
 
