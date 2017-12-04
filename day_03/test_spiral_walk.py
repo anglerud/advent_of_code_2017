@@ -8,6 +8,8 @@
 
 NOTE: the spiral is 1-indexed.
 """
+import itertools
+
 import spiral_walk as sw
 
 
@@ -34,3 +36,39 @@ def test_pos_23() -> None:
 def test_pos_1024() -> None:
     """Data from square 1024 must be carried 31 steps."""
     assert sw.walk_to(1024).distance == 31
+
+
+# ==== Part 2
+def nth(iterable, index):
+    """Returns the nth item"""
+    return next(itertools.islice(iterable, index, None))
+
+
+def test_sum_pos_2() -> None:
+    """Square 2 has one adjacent filled square (with 1), so it stores 1."""
+    # Note: We take 1 step (first item) - thus end up on square 2
+    # (square 1 being home).
+    assert nth(sw.sum_walk(), 0) == 1
+
+
+def test_sum_pos_3() -> None:
+    """Square 3 has both of the above squares as neighbors and stores 2."""
+    # 2nd step - 3rd square
+    assert nth(sw.sum_walk(), 1) == 2
+
+
+def test_sum_pos_4() -> None:
+    """Square 4 has all three squares as neighbors and stores 4."""
+    # Third step, 4th square.
+    assert nth(sw.sum_walk(), 2) == 4
+
+
+def test_sum_pos_5() -> None:
+    """Square 5 has the first and fourth squares as neighbors, so stores 5."""
+    # Fourth step, 5th square.
+    assert nth(sw.sum_walk(), 3) == 5
+
+
+def test_sum_larger_than_4() -> None:
+    """First value larger than 4 in a location is 5, in location 5."""
+    assert sw.sum_bigger_than(4) == 5

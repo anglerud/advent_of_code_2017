@@ -1,22 +1,26 @@
 #!/usr/bin/env python
 # coding: utf-8
+"""Day 3 of the Advent of Code puzzles.
+
+Puzzles involving memory stored on an infinite two-dimensional grid.
+
+Each square on the grid is allocated in a spiral pattern starting at a location
+marked 1 and then counting up while spiraling outward.
 """
-"""
-import itertools
 import typing as t
 
 import attr
 import click
 
 
-@attr.s
+@attr.s(frozen=True)
 class Step(object):
     """A move, Right, Up, Left, Down."""
     x = attr.ib(attr.validators.instance_of(int))  # type: int
     y = attr.ib(attr.validators.instance_of(int))  # type: int
 
 
-@attr.s
+@attr.s(frozen=True)
 class Coordinate(object):
     """Cartesian coordinate - (x, y)."""
     x = attr.ib(attr.validators.instance_of(int))
@@ -35,6 +39,8 @@ Right = Step(x=1, y=0)
 Up = Step(x=0, y=1)
 Left = Step(x=-1, y=0)
 Down = Step(x=0, y=-1)
+
+Memory = t.Dict[Coordinate, int]
 
 
 def path() -> t.Iterable[Step]:
@@ -69,6 +75,27 @@ def path() -> t.Iterable[Step]:
         second_corner = [Left, Left] + second_corner + [Down, Down]
 
 
+def neighbor_path() -> t.Iterable[Step]:
+    """The path to walk once around our home base. """
+    return (Right, Up, Left, Left, Down, Down, Right, Right)
+
+
+def walk_neighborhood(location: Coordinate) -> t.Iterable[Coordinate]:
+    """Take a walk around your own memory location."""
+    for step in neighbor_path():
+        location = location.move(step)
+        yield location
+
+
+def sum_neighborhood(memory: Memory, location: Coordinate) -> int:
+    """Sum of all memory locations around """
+    acc = 0
+
+    for place in walk_neighborhood(location):
+        acc += memory.get(place, 0)
+
+    return acc
+
 
 def walk(steps: int) -> Coordinate:
     """Start at Coordinate(x=0, y=0), then take `steps` spiral movements."""
@@ -84,19 +111,46 @@ def walk(steps: int) -> Coordinate:
 
 
 def walk_to(position: int) -> Coordinate:
-    """ """
+    """Walk the spiral until `position`"""
     steps_to_walk = position - 1
     return walk(steps_to_walk)
 
 
+def sum_walk() -> t.Iterable[int]:
+    """For each memory location, fill it with the sum of neighbor values.
+
+    Return the value for each location we visit.
+    """
+    location = Coordinate(x=0, y=0)
+    memory = {location: 1}  # Set up basic memory.
+
+    for step in path():
+        # Start moving
+        location = location.move(step)
+        # Sum around each location we're at.
+        neighborhood_value = sum_neighborhood(memory, location)
+        memory[location] = neighborhood_value
+
+        yield neighborhood_value
+
+
+def sum_bigger_than(puzzle_input) -> int:
+    """Find the first memory contents larger than the `puzzle_input`."""
+    for memory_value in sum_walk():
+        if memory_value > puzzle_input:
+            return memory_value
+
+
 @click.group()
 def spiral_walk() -> None:
+    """Day 3 of the Advent of code puzzles."""
     pass
 
 
 @spiral_walk.command()
 @click.argument('position', type=int)
-def pos(position: int):
+def pos(position: int) -> None:
+    """Get the distance from the origin to memory location in `position`."""
     if position < 1:
         msg = "{} is not a position in memory!".format(position)
         click.secho(msg, fg='red')
@@ -105,6 +159,20 @@ def pos(position: int):
     location = walk_to(position)
     click.echo("Ended up at: {}".format(location))
     click.secho("Distance walked is: {}".format(location.distance), fg="green")
+
+
+@spiral_walk.command()
+@click.argument('value', type=int)
+def sum(value: int) -> None:
+    """Get the first value in a neighbor-sum walk larger than `value`."""
+    if value < 1:
+        msg = "Can't sum our memory values to less than one".format(value)
+        click.secho(msg, fg='red')
+        return
+
+    first_larger_value = sum_bigger_than(value)
+    msg = "First value larger than {} is: {}".format(value, first_larger_value)
+    click.echo(msg)
 
 
 def main() -> None:
