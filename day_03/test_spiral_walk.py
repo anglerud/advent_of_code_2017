@@ -12,15 +12,25 @@ import spiral_walk as sw
 
 
 def test_first_pos() -> None:
-    """ """
-    assert sw.index_to_coord(1) == sw.Coordinate(0, 0)
+    """Data from square 1 is carried 0 steps, since it's at the access port."""
+    assert sw.walk_to(1) == sw.Coordinate(0, 0)
 
 
 def test_pos_one_east() -> None:
     """ """
-    assert sw.index_to_coord(2) == sw.Coordinate(1, 0)
+    assert sw.walk_to(2) == sw.Coordinate(1, 0)
 
 
-def test_manhattan_distance_from_origin() -> None:
-    """ """
-    assert sw.distance(sw.Coordinate(0, 0)) == 0
+def test_pos_12() -> None:
+    """Data from square 12 is carried 3 steps, such as: down, left, left."""
+    assert sw.walk_to(12).distance == 3
+
+
+def test_pos_23() -> None:
+    """Data from square 23 is carried only 2 steps: up twice."""
+    assert sw.walk_to(23).distance == 2
+
+
+def test_pos_1024() -> None:
+    """Data from square 1024 must be carried 31 steps."""
+    assert sw.walk_to(1024).distance == 31
