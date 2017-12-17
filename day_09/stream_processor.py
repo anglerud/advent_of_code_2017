@@ -7,7 +7,6 @@ import functools
 import operator
 import typing as t
 
-import attr
 import click
 
 
@@ -36,12 +35,12 @@ def tokenize(stream: t.Iterable[str]) -> t.Iterable[Token]:
     return (special_bytes.get(c, Token.CHARACTER) for c in stream)
 
 
-def strip_garbage_contents(token_stream: t.Iterable[Token]) -> t.Iterable[Token]:
+def strip_garbage_contents(tokens: t.Iterable[Token]) -> t.Iterable[Token]:
     """ """
     in_garbage = False
     in_escape = False
 
-    for token in token_stream:
+    for token in tokens:
         if in_escape:
             # Just skip one token if we're being escaped.
             in_escape = False
@@ -62,6 +61,30 @@ def strip_garbage_contents(token_stream: t.Iterable[Token]) -> t.Iterable[Token]
             yield token
 
 
+def garbage_contents(token_stream: t.Iterable[Token]) -> t.Iterable[Token]:
+    """ """
+    in_garbage = False
+    in_escape = False
+
+    for token in token_stream:
+        if in_escape:
+            # Just skip one token if we're being escaped.
+            in_escape = False
+        elif token is Token.ESCAPE:
+            # If starting an escape just set our escape-status.
+            in_escape = True
+        elif not in_garbage and token is Token.START_GARBAGE:
+            in_garbage = True
+        elif in_garbage and token is Token.END_GARBAGE:
+            in_garbage = False
+        elif in_garbage:
+            # Gargbage token - gimme gimme gimme!
+            yield token
+
+        # Other tokens are group starts, ends, separators,
+        # All things we discard when counting garbage.
+
+
 def count_groups(stream: t.Iterable[str]) -> int:
     """ """
     token_stream = tokenize(stream)
@@ -73,7 +96,7 @@ def count_groups(stream: t.Iterable[str]) -> int:
     return sum(1 for group_end_token in group_end_tokens)
 
 
-def score_stream(token_stream: t.Iterable[Token]) -> int:
+def score_stream(token_stream: t.Iterable[Token]) -> t.Iterable[int]:
     """ """
     is_group_start = functools.partial(operator.eq, Token.START_GROUP)
     is_group_end = functools.partial(operator.eq, Token.END_GROUP)
@@ -84,7 +107,7 @@ def score_stream(token_stream: t.Iterable[Token]) -> int:
             current_score += 1
             yield current_score
         elif is_group_end(token):
-            # We only count new groups, so we don't yield a score here. 
+            # We only count new groups, so we don't yield a score here.
             current_score -= 1
 
 
@@ -94,6 +117,14 @@ def score_groups(stream: t.Iterable[str]) -> int:
     stripped_token_stream = strip_garbage_contents(token_stream)
 
     return sum(score_stream(stripped_token_stream))
+
+
+def score_garbage(stream: t.Iterable[str]) -> int:
+    """ """
+    token_stream = tokenize(stream)
+    garbage_stream = garbage_contents(token_stream)
+
+    return sum(1 for token in garbage_stream)
 
 
 @click.group()
@@ -108,6 +139,15 @@ def score(stream: t.IO[str]) -> None:
     score = score_groups(stream.read())
 
     click.secho(f"Score of stream is: {score}", fg="green")
+
+
+@stream_processor.command()
+@click.argument('stream', type=click.File())
+def garbage_score(stream: t.IO[str]) -> None:
+    # So, not quite a stream... but hey ;)
+    score = score_garbage(stream.read())
+
+    click.secho(f"Garbage characters removed: {score}", fg="green")
 
 
 def main():

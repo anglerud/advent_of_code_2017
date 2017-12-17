@@ -49,6 +49,16 @@ GROUPS_SCORE = (
     (r'{{<a!>},{<a!>},{<a!>},{<ab>}}', 3)
 )
 
+GARBAGE_SCORE = {
+    (r'<>', 0),
+    (r'<random characters>', 17),
+    (r'<<<<>', 3),
+    (r'<{!>}>', 2),
+    (r'<!!>', 0),
+    (r'<!!!>>', 0),
+    (r'<{o"i!a,<{i<a>', 10)
+}
+
 
 @pytest.mark.parametrize("test_input,expected", TOKEN_EXAMPLES)
 def test_parser(test_input, expected):
@@ -100,4 +110,11 @@ def test_count_groups(test_input, expected):
 def test_score_groups(test_input, expected):
     """Tests that we can give scores to the groups"""
     score = sp.score_groups(test_input)
+    assert score == expected
+
+
+@pytest.mark.parametrize("test_input,expected", GARBAGE_SCORE)
+def test_score_garbage(test_input, expected):
+    """Tests that we can count the garbage"""
+    score = sp.score_garbage(test_input)
     assert score == expected
