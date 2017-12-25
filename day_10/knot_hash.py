@@ -2,6 +2,8 @@
 # coding=utf-8
 """Advent of code, day 10.
 """
+import functools
+import operator
 import typing as t
 
 import attr
@@ -28,11 +30,9 @@ class KnotHash(object):
     def current_value(self):
         return self.string[self.current_position]
 
-
     @property
     def checksum(self):
         return self.string[0] * self.string[1]
-
 
     def tie(self, length: int):
         """ """
@@ -65,11 +65,47 @@ def pinch_lengths(knot_lengths: t.IO[str]) -> t.Iterable[int]:
     return map(int, knot_lengths.read().strip().split(','))
 
 
+def byte_pinch_lengths(knot_lengths: t.IO[str]) -> t.List[int]:
+    """Get the pinch lengths to apply from our input."""
+    return list(map(ord, knot_lengths.read().strip())) + [17, 31, 73, 47, 23]
+
+
 def elf_hash(knotter: KnotHash, knot_lengths: t.Iterable[int]) -> KnotHash:
     for length in knot_lengths:
         knotter = knotter.tie(length)
 
     return knotter
+
+
+def elf_sparse_hash(knotter: KnotHash, knot_lengths: t.Iterable[int]) -> KnotHash:
+    """ """
+    for _ in range(64):
+        knotter = elf_hash(knotter, knot_lengths)
+
+    return knotter
+
+
+def dense_hash_blocks(knotter: KnotHash) -> t.Iterable[int]:
+    string = knotter.string
+    while string:
+        chunk, string = string[:16], string[16:]
+
+        yield functools.reduce(operator.xor, chunk)
+
+
+def elf_dense_hash(knotter: KnotHash) -> str:
+    """ """
+    def hex_pad(num: int) -> str:
+        return hex(num)[2:].zfill(2)
+
+    return ''.join(map(hex_pad, dense_hash_blocks(knotter)))
+
+
+def rudolph_santa_advent_hash(knot_lengths: t.IO[str]) -> str:
+    knotter = KnotHash.new(list(range(256)))
+    knotter = elf_sparse_hash(knotter, byte_pinch_lengths(knot_lengths))
+
+    return elf_dense_hash(knotter)
 
 
 @click.group()
@@ -84,6 +120,14 @@ def knot(knot_lengths: t.IO[str]) -> None:
     knotter = elf_hash(knotter, pinch_lengths(knot_lengths))
 
     click.secho(f"The elf checksum is {knotter.checksum}")
+
+
+@knot_hash.command()
+@click.argument('knot_lengths', type=click.File())
+def knot_64(knot_lengths: t.IO[str]) -> None:
+    hash_str = rudolph_santa_advent_hash(knot_lengths)
+
+    click.secho(f"The elf hash string is {hash_str}")
 
 
 def main():

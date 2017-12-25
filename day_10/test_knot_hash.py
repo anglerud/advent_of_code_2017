@@ -1,7 +1,12 @@
 """
 In this example, the first two numbers in the list end up being 3 and 4; to check the process, you can multiply them together to produce 12.
 """
+import io
+
+import pytest
+
 import knot_hash as kh
+
 
 def test_hash_step_one():
     """
@@ -78,3 +83,12 @@ def test_hash_step_four():
     assert knotter.checksum == 12
 
 
+@pytest.mark.parametrize('example,expected', [
+    ('', 'a2582a3a0e66e6e86e3812dcb672a272'),
+    ('AoC 2017', '33efeb34ea91902bb2f59c9920caa6cd'),
+    ('1,2,3', '3efbe78a8d82f29979031a4aa0b16a9d'),
+    ('1,2,4', '63960835bcdc130f0b66d7ff4f6a5a8e')
+])
+def test_dense_hashes(example, expected):
+    example_io = io.StringIO(example)
+    assert kh.rudolph_santa_advent_hash(example_io) == expected
